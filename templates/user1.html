@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat App</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/3.0.3/socket.io.min.js"></script>
+</head>
+
+<body>
+    <div id="chat">
+        <input id="chat_id" type="hidden" value="1"> <!-- Example chat_id -->
+        <input id="sender_id" type="hidden" value="1"> <!-- Example sender_id -->
+        <input id="receiver_id" type="hidden" value="2"> <!-- Example receiver_id -->
+        {% for message in messages %}
+        <div>{{ message }}</div>
+        {% endfor %}
+        <div id="messages"></div>
+        <input id="message" autocomplete="off"><button onclick="sendMessage()">Send</button>
+    </div>
+
+    <script>
+        const socket = io();
+
+        //  Step - 1
+        window.onload = () => {
+            const chat_id = document.getElementById('chat_id').value;
+            const username = 'User1';  // Example username
+            socket.emit('join', { username, chat_id });
+        };
+
+
+        function sendMessage() {
+            const chat_id = document.getElementById('chat_id').value;
+            const sender_id = document.getElementById('sender_id').value;
+            const receiver_id = document.getElementById('receiver_id').value;
+            const content = document.getElementById('message').value;
+            socket.emit('message', { chat_id, sender_id, receiver_id, content });
+            document.getElementById('message').value = '';
+        }
+
+        socket.on('message', function (data) {
+            const messages = document.getElementById('messages');
+            const message = document.createElement('div');
+            message.textContent = `${data.sender_id}: ${data.content} (${data.timestamp})`;
+            messages.appendChild(message);
+        });
+
+
+        window.onunload = () => {
+            const chat_id = document.getElementById('chat_id').value;
+            const username = 'User1';  // Example username
+            socket.emit('leave', { username, chat_id });
+        };
+
+    </script>
+</body>
+
+</html>
